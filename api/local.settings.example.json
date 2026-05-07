@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "BLOB_CONNECTION_STRING": "DefaultEndpointsProtocol=https;AccountName=<storage-account-name>;AccountKey=<storage-account-key>;EndpointSuffix=core.windows.net",
+    "BLOB_CONTAINER_NAME": "media",
+    "COSMOS_ENDPOINT": "https://<cosmos-account-name>.documents.azure.com:443/",
+    "COSMOS_KEY": "<cosmos-primary-key>",
+    "COSMOS_DATABASE": "azurevista-db",
+    "COSMOS_CONTAINER": "assets",
+    "USER_ID": "demo-user"
+  }
+}

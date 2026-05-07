@@ -1,0 +1,20 @@
+{
+  "name": "azurevista-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AzureVista CW2 Azure Functions API",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start",
+    "check": "node --check src/functions/health.js && node --check src/functions/assets.js && node --check src/lib/azureClients.js && node --check src/lib/http.js && node --check src/lib/parseMultipart.js"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.7.0",
+    "@azure/storage-blob": "^12.27.0",
+    "@azure/cosmos": "^4.2.0",
+    "formidable": "^3.5.2",
+    "uuid": "^11.0.0"
+  },
+  "devDependencies": {}
+}
+
