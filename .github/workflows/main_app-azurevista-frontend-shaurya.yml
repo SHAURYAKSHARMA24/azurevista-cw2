@@ -39,7 +39,7 @@ jobs:
       - name: Prepare App Service package
         run: |
           mkdir frontend-deploy
-          cp frontend/package.json frontend/package-lock.json frontend/server.cjs frontend-deploy/
+          cp frontend/package.json frontend/package-lock.json frontend/server.js frontend/web.config frontend-deploy/
           cp -r frontend/dist frontend-deploy/dist
 
       - name: Upload artifact for deployment job

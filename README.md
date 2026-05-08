@@ -174,13 +174,15 @@ Use these values when creating the frontend App Service:
 | Startup command | `npm start` |
 | App setting | `SCM_DO_BUILD_DURING_DEPLOYMENT=true` |
 
-The frontend build output is served from `frontend/dist` using the lightweight `serve` package. `npm start` runs `frontend/server.cjs`, which starts the equivalent of this command while also working on local Windows development machines:
+The frontend build output is served from `frontend/dist` using a small Express production server. `npm start` runs `frontend/server.js`, which serves static files and returns `dist/index.html` for non-API routes so React routing works on Azure App Service.
 
 ```text
-serve -s dist -l ${PORT:-8080}
+node server.js
 ```
 
 The server uses Azure's `PORT` environment variable when present and falls back to `8080` locally.
+
+For Windows App Service, `frontend/web.config` routes IIS traffic into `server.js`. This avoids the common App Service error that says the site has no permission to view the directory or page when no Node startup/default document is configured.
 
 After App Service is created, copy its public URL, for example `https://app-azurevista-frontend-shaurya.azurewebsites.net`, and add it in the Azure Function App CORS settings. Keep local origins only if you still need them for testing.
 
@@ -188,7 +190,7 @@ After App Service is created, copy its public URL, for example `https://app-azur
 
 This repo includes `.github/workflows/ci.yml`, which installs dependencies, builds the React frontend, and runs the API syntax check on pushes and pull requests to `main`. Azure App Service Deployment Center also added `.github/workflows/main_app-azurevista-frontend-shaurya.yml` for frontend deployment.
 
-The App Service workflow must use Node 22 and run npm commands from `frontend`, not the repository root. It builds the Vite frontend, packages `dist`, `package.json`, `package-lock.json`, and `server.cjs`, then deploys that package to App Service.
+The App Service workflow must use Node 22 and run npm commands from `frontend`, not the repository root. It builds the Vite frontend, packages `dist`, `package.json`, `package-lock.json`, `server.js`, and `web.config`, then deploys that package to App Service.
 
 Deployment Center created federated Azure login secrets with names beginning `AZUREAPPSERVICE_CLIENTID_`, `AZUREAPPSERVICE_TENANTID_`, and `AZUREAPPSERVICE_SUBSCRIPTIONID_`. Keep those GitHub secrets in place for CI/CD.
 
