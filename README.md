@@ -31,7 +31,7 @@ https://func-azurevista-cw2-shaurya-bxa3ere7bhaehsfy.swedencentral-01.azurewebsi
 | Azure Cosmos DB for NoSQL | Stores image metadata in database `azurevista-db`, container `assets` |
 | Application Insights | Captures API requests, logs, failures, and performance evidence |
 | GitHub | Source control and CI/CD evidence |
-| Azure Static Web Apps | Hosts the built React frontend after the next deployment step |
+| Azure App Service | Hosts the built React frontend as a static production site |
 
 ## Architecture Summary
 
@@ -152,31 +152,47 @@ Validation errors return clean JSON with HTTP `400`, including missing file, non
 3. Add the backend environment variables to the Function App Configuration page.
 4. Confirm the deployed health endpoint returns JSON from `/api/health`.
 5. Build the frontend with `npm.cmd run build`.
-6. Deploy the `frontend` app to Azure Static Web Apps.
-7. Confirm Static Web Apps uses `VITE_API_BASE_URL` from `frontend/.env.production`.
-8. Add the new Static Web Apps origin to the Function App CORS allowed origins.
+6. Deploy the `frontend` app to Azure App Service because Azure Static Web Apps was blocked by the student subscription region policy.
+7. Confirm App Service uses `VITE_API_BASE_URL` from `frontend/.env.production` during the production build.
+8. Add the new App Service origin to the Function App CORS allowed origins.
 9. Confirm Application Insights is connected to the Function App and receiving request/log data.
 10. Capture the successful GitHub CI/CD deployment run for the CW2 video.
 
-## Azure Static Web Apps Settings
+## Azure App Service Frontend Deployment
 
-Use these values in the Azure Static Web Apps portal or generated GitHub Actions workflow:
+Azure Static Web Apps was the preferred static-hosting target, but it was blocked by Azure subscription region policy. The frontend is therefore deployed with Azure App Service. This still provides a deployed Azure-hosted web app for the running React frontend, while the backend remains hosted separately on Azure Functions.
+
+Use these values when creating the frontend App Service:
 
 | Setting | Value |
 | --- | --- |
-| App location | `/frontend` |
-| API location | Leave blank |
-| Output location | `dist` |
-| Build command | `npm run build` |
-| App artifact location | `dist` |
+| App Service name | `app-azurevista-frontend-shaurya` |
+| Publish | Code |
+| Runtime stack | Node 22 LTS |
+| Operating system | Linux |
+| Region | Any region allowed by the subscription policy |
+| Startup command | `npm start` |
+| App setting | `SCM_DO_BUILD_DURING_DEPLOYMENT=true` |
 
-The React app includes `staticwebapp.config.json` for SPA navigation fallback. The copy in `frontend/public` is included in the Vite `dist` output.
+The frontend build output is served from `frontend/dist` using the lightweight `serve` package. `npm start` runs `frontend/server.cjs`, which starts the equivalent of this command while also working on local Windows development machines:
 
-After Static Web Apps is created, copy its public URL, for example `https://<your-static-app>.azurestaticapps.net`, and add it in the Azure Function App CORS settings. Keep `https://portal.azure.com` or local origins only if you still need them for testing.
+```text
+serve -s dist -l ${PORT:-8080}
+```
+
+The server uses Azure's `PORT` environment variable when present and falls back to `8080` locally.
+
+After App Service is created, copy its public URL, for example `https://app-azurevista-frontend-shaurya.azurewebsites.net`, and add it in the Azure Function App CORS settings. Keep local origins only if you still need them for testing.
 
 ## CI/CD Evidence
 
-This repo includes `.github/workflows/ci.yml`, which installs dependencies, builds the React frontend, and runs the API syntax check on pushes and pull requests to `main`. For final deployment evidence, connect the GitHub repository to Azure Static Web Apps so Azure generates or uses a deployment workflow. In the video, show a successful workflow run and the deployed Static Web Apps URL.
+This repo includes `.github/workflows/ci.yml`, which installs dependencies, builds the React frontend, and runs the API syntax check on pushes and pull requests to `main`. Azure App Service Deployment Center also added `.github/workflows/main_app-azurevista-frontend-shaurya.yml` for frontend deployment.
+
+The App Service workflow must use Node 22 and run npm commands from `frontend`, not the repository root. It builds the Vite frontend, packages `dist`, `package.json`, `package-lock.json`, and `server.cjs`, then deploys that package to App Service.
+
+Deployment Center created federated Azure login secrets with names beginning `AZUREAPPSERVICE_CLIENTID_`, `AZUREAPPSERVICE_TENANTID_`, and `AZUREAPPSERVICE_SUBSCRIPTIONID_`. Keep those GitHub secrets in place for CI/CD.
+
+The deployment workflow runs on pushes to `main` and can also be started manually with `workflow_dispatch`. In the video, show a successful workflow run and the deployed App Service URL.
 
 ## Testing Checklist
 
@@ -218,7 +234,7 @@ Suggested 5-minute structure:
 | 1:45-2:30 | Show REST endpoints including `/api/health` and `/api/assets` |
 | 2:30-3:20 | Show Blob Storage container `media` and Cosmos DB `azurevista-db` / `assets` |
 | 3:20-4:10 | Show Application Insights request logs and custom log messages |
-| 4:10-4:45 | Show GitHub history and successful CI/CD workflow run |
+| 4:10-4:45 | Show GitHub history and successful CI/CD/App Service deployment workflow run |
 | 4:45-5:00 | Summarise how the app meets the CW2 cloud-native design |
 
 ## Video Evidence Checklist
